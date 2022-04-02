@@ -3,14 +3,13 @@ const {raw, response} = require('express');
 const {spawn} = require('child_process');
 const path = require('path');
 require('dotenv').config();
+const fs = require('fs');
+const Product = require('../model/Product');
 
 
-function getLetterBySign(args) {
+function getProductBySigns(args) {
     return new Promise((resolve) => {
-        const pyprog = spawn('python', [process.cwd() + '/translateLetter.py', args]);
-        pyprog.stderr.on('data', (data) => {
-            resolve(`ps stderr: ${data}`);
-        });
+        const pyprog = spawn('python', [process.cwd() + '/slr_script.py', args]);
         pyprog.stdout.on('data', function(data)  {
             resolve(data.toString());
         });
@@ -27,18 +26,60 @@ router.post('/signLanguage', (req, res) => {
     
         const imgs = req.body.imgs;
         if(imgs) {
-            var letters = imgs.map((img) => {
+            console.log(imgs.length);
+            imgs.forEach((img) => {
                 // get the b64 encoded image.
                 var b64img = img.substring(img.indexOf(',')+1);
-                // call script to get feedback
-                return 'G';
+
+                // dump b64img in b64imgs file with ';' delimitator
+                fs.appendFileSync("b64imgs", b64img+';', function(err) {
+                    if(err) {
+                        return res.status(500).send('Couldn\'t dump images for script');
+                    }
+                })
             });
-            if(letters.length == size) {
-                return res.status(200).send(letters.join(''));
-            }
-            else {
-                return res.status(500).send('Couldn\'t process all images');
-            }
+             // call script to get feedback
+             getProductBySigns('b64imgs')
+             .then(response => {
+
+                // match the response with at least one product.
+                let max = -1;
+                let cnt=0;
+                let posOfThatElement = 0;
+                let cntElem = 0;
+                Product.find({}, function(err, products) {
+                    products.forEach((product) => {
+                        cnt=0;
+                        for(var i=0;i<response.length;i++) {
+                            if(response[i] == product.title[i]) {
+                                cnt++;
+                            }
+                            if(cnt > max) {
+                                max = cnt;
+                                posOfThatElement = cntElem;
+                            }
+                        }
+                        cntElem++;
+                    });
+
+                    if(max != -1) {
+                        res.status(200).send(products[posOfThatElement].title);
+                    }
+                    else {
+                        res.status(400).send(err);
+                    }
+                });
+            })
+             .catch(err => {
+                res.status(400).send(err);
+            })
+             .finally(() => {
+                fs.unlinkSync('./b64imgs', (err) => {
+                    if(err) {
+                        console.error(err);
+                    }
+                });
+            });
         }
         else {
             return res.status(404).send('Couldn\'t get the images');
