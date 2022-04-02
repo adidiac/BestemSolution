@@ -62,8 +62,25 @@ router.post('/signLanguage', (req, res) => {
                         cntElem++;
                     });
 
-                    if(max != -1) {
-                        res.status(200).send(products[posOfThatElement].title);
+                    cnt=0;
+                    let completeCommand = "COMPLETE";
+                    for(var i=0;i<response.length;i++) {
+                        if(response[i] == completeCommand[i]) {
+                            cnt++;
+                        }
+                        if(cnt > max) {
+                            max = cnt;
+                            posOfThatElement=-1;
+                        }
+                    }
+
+                    if(max!=-1) {
+                        if(posOfThatElement === -1) {
+                            res.status(200).send("COMPLETE");
+                        }
+                        else {
+                            res.status(200).send(products[posOfThatElement].title);
+                        }
                     }
                     else {
                         res.status(400).send(err);
