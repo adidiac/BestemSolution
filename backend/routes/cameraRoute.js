@@ -34,7 +34,7 @@ router.post('/signLanguage', (req, res) => {
                 return 'G';
             });
             if(letters.length == size) {
-                return res.status(200).send(letters);
+                return res.status(200).send(letters.join(''));
             }
             else {
                 return res.status(500).send('Couldn\'t process all images');
