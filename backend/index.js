@@ -9,9 +9,9 @@ const homeRoute = require('./routes/home');
 const cameraRoute = require('./routes/cameraRoute');
 
 // // Connect to DB  -- implement.
-// mongoose.connect(process.env.DB_CONNECTION, () => {
-//     console.log('connected to db!')
-// });
+mongoose.connect(process.env.DB_CONNECTION, () => {
+    console.log('connected to db!')
+});
 
 // Middlewares
 app.use(express.json({limit: '50mb'}));
