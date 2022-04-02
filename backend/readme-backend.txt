@@ -1,2 +1,5 @@
-- will add the backend side.
-- empty for now.
+- 1. probleme auditive:
+- ruta primire imagini
+- primeste nr_imgs_to_receive = 5 imagini
+- parsare imagine base64, apelare script cu string-ul b64 obtinut
+- trimitere actiune.
