@@ -93,14 +93,17 @@ export const TransactionsProvider = ({ children }) => {
       const accounts = await ethereum.request({ method: "eth_requestAccounts", });
 
       setCurrentAccount(accounts[0]);
-      window.location.reload();
+      console.log(accounts[0]);
+      
     } catch (error) {
       console.log(error);
 
       throw new Error("No ethereum object");
     }
   };
-
+  const setAdminAccount=(account)=>{
+    setCurrentAccount(account);
+  }
   const sendTransaction = async (formData1) => {
     try {
       if (ethereum) {
@@ -140,10 +143,12 @@ export const TransactionsProvider = ({ children }) => {
       throw new Error("No ethereum object");
     }
   };
-
+  const logOut = () => {
+    setCurrentAccount("");
+  };
   useEffect(() => {
-    checkIfWalletIsConnect();
-    checkIfTransactionsExists();
+    //checkIfWalletIsConnect();
+    //checkIfTransactionsExists();
   }, [transactionCount]);
 
   return (
@@ -157,6 +162,8 @@ export const TransactionsProvider = ({ children }) => {
         sendTransaction,
         handleChange,
         formData,
+        setAdminAccount,
+        logOut
       }}
     >
       {children}

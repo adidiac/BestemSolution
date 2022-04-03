@@ -25,6 +25,7 @@ export default function ModalLogin({show,setShow})
         let name=response.profileObj.givenName+' '+response.profileObj.familyName;
         let id=response.profileObj.googleId;
         let picture=response.profileObj.imageUrl;
+        
         dispatch({type:'SET_CURRENT_USER',payload:{email,name,id,picture}});
         setShow(false);
       }
@@ -53,12 +54,12 @@ export default function ModalLogin({show,setShow})
         let name=form[0].value;
         let email=form[1].value;
         let password=form[2].value;
-        axios.post("http://localhost:3000/users/register/",{name,email,password}).then(res=>{
-            console.log(res.data);
-            dispatch({type:"LOGIN",payload:res.data});
-            }).catch(err=>{
-                console.log(err);
-            })
+        // axios.post("http://localhost:3000/users/register/",{name,email,password}).then(res=>{
+        //     console.log(res.data);
+        //     dispatch({type:"LOGIN",payload:res.data});
+        //     }).catch(err=>{
+        //         console.log(err);
+        //     })
         setShow(false);
     }
     return <>

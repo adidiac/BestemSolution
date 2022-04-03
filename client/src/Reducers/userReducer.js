@@ -1,4 +1,4 @@
-export const userReducer = (state = {isAuthenticated:false,user:null}, action) => {
+export const userReducer = (state = {isAuthenticated:false,user:{},type:null}, action) => {
     switch (action.type) {
         case 'SET_CURRENT_USER':
         return {
@@ -10,7 +10,13 @@ export const userReducer = (state = {isAuthenticated:false,user:null}, action) =
         return { 
             ...state,
             isAuthenticated: false,
-            user: {}
+            user: {},
+            type:null
+        };
+        case 'SET_USER_TYPE':
+        return {
+            ...state,
+            type: action.payload
         };
         default:
         return state;

@@ -2,22 +2,29 @@ import {Row,Col,Modal,Button,Container,Spinner} from 'react-bootstrap';
 import { TransactionContext } from '../../Transanctions/TransactionProvider';
 import { useState,useEffect } from 'react';
 import { useContext } from "react";
-import { products } from './Products/products';
 import * as Icons from 'react-bootstrap-icons';
 import { shopAddress } from '../../utils/constants';
+import { useSelector,useDispatch } from 'react-redux';
 export default function ModalCart({modalShow,setModalShow}){
     const { currentAccount, connectWallet, handleChange, sendTransaction, formData,isLoading } = useContext(TransactionContext);
     
-    const [buttonSelected,setButtonSelected]=useState(-1);
 
-    const donate=(price,name)=>{
-        // console.log(formData);
-        // sendTransaction(formData);
+    const products=useSelector(state=>state.products);
+
+
+    const buy=()=>{
+        let price=0;
+        let name='';
+        products.forEach(product=>{
+            price+=product.price;
+            name+=product.name+',';
+        })
+
         let formData={
             amount:price.toString(),
             addressTo:shopAddress,
             keyword:name,
-            message:name+' donated'
+            message:name
         }
         sendTransaction(formData);
     }
@@ -52,14 +59,6 @@ export default function ModalCart({modalShow,setModalShow}){
                             </Col>
                             </Row>
                         </Col>
-                        <Col style={{marginTop:15}}>
-                        {isLoading&&buttonSelected==idx?<Spinner animation="border" variant="primary" />:
-                        <Button onClick={()=>{
-                            setButtonSelected(idx)
-                            donate(product.price,product.name);
-                        }}>Donate</Button>
-                        }
-                        </Col>
                     </Row>
                 }
                 )
@@ -76,7 +75,7 @@ export default function ModalCart({modalShow,setModalShow}){
     return <>
         <Modal show={modalShow} onHide={() => setModalShow(false)}>
             <Modal.Header closeButton>
-            <Modal.Title>Donate</Modal.Title>
+            <Modal.Title>Cart</Modal.Title>
             </Modal.Header>
             <Modal.Body style={{textAlign:'center'}}>
                 {modalBody()}
@@ -85,6 +84,12 @@ export default function ModalCart({modalShow,setModalShow}){
             <Button variant="secondary" onClick={() => setModalShow(false)}>
                 Close
             </Button>
+            {isLoading?<Spinner animation="border" variant="primary" />:
+                        <Button onClick={()=>{
+                            buy();
+                            setModalShow(false);
+                        }}>Buy</Button>
+                        }
             </Modal.Footer>
         </Modal>
     </>
