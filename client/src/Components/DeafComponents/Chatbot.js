@@ -1,8 +1,12 @@
 import { useEffect, useState,useRef } from "react";
 import { Container,Button,Row,Col,Form,FormControl } from "react-bootstrap";
 import axios from 'axios'
+import { TransactionContext } from '../../Transanctions/TransactionProvider';
+import { shopAddress } from '../../utils/constants';
+import { useContext } from "react";
 import Webcam from "react-webcam";
 import { useSelector, useDispatch } from "react-redux";
+import {url} from '../../utils/constants';
 function makeid(length) {
     var result           = '';
     var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -39,19 +43,74 @@ function useInterval(callback, delay) {
 }
 export default function ChatBot()
 {
-
+    const { currentAccount, connectWallet, handleChange, sendTransaction, formData,isLoading } = useContext(TransactionContext);
+    const [produse,setProduse]=useState([]);
+    const dispatch=useDispatch();
+    const products=useSelector(state=>state.products);
     const webcamRef = useRef(null);
     const [isRunning,setIsRunning]=useState(false);
     const [images,setImages]=useState([]);
     const [contor,setContor]=useState(0);
 
     const delay=2000;
+    const buy=()=>{
+        let price=0;
+        let name='';
+
+        console.log(products);
+        products.map((product,idx)=>{
+            price+=product.price;
+            if(idx===products.length-1)
+                name+=product.name;
+            else
+                name+=product.name+',';
+        })
+        console.log(price);
+        console.log(name);
+        let formData={
+            amount:price.toString(),
+            addressTo:shopAddress,
+            keyword:name,
+            message:name
+        }
+        sendTransaction(formData);
+        dispatch({type:'EMPTY_PRODUSE'});
+
+    }
     useInterval(() => {
         const imageSrc = webcamRef.current.getScreenshot();
         setImages(images=>[...images,imageSrc]);
         setContor(contor=>contor+1);
-        if(contor>=10){
-            setIsRunning(false);
+        if(contor==10){
+            
+            console.log("stop");
+            //add to message as user to stop
+            setMessage(message=>[...message,{message:"You can stop",user:"bot"}]);
+            console.log(images);
+            axios.post(url+"/cameraRoute/signLanguage",{imgs:images,size:10}).then(res=>{
+                console.log(res.data);
+                //setFeedbackText(res.data);
+                console.log("done");
+                if(res.data!="COMPLETE"){
+                setMessage(message=>[...message,{message:"You selected "+res.data,user:"userul"}]);
+                produse.map(p=>{
+                    if(p.name==res.data){
+                       dispatch({type:"ADD_PRODUS",payload:p});
+                    }
+
+                })
+                }
+                else{
+                    buy();
+                }  
+                setImages([]);
+                setIsRunning(false);
+                setContor(0);
+                setImages([]);
+                setIsRunning(false);
+            }).catch(err=>{
+                console.log(err);
+            })
         }
     }, isRunning ? delay : null);
 
@@ -69,23 +128,22 @@ export default function ChatBot()
         {message:"Or COMPLETE to finish your cart",user:"bot"}
     ]);
 
-    const sendData=(message1)=>{
-        document.getElementById("inputChat").value="";
-        console.log(messages)
-        // axios.post("http://localhost:2409/children/chatbot/",{message:message1,tokenSession:userId}).
-        // then((res)=>{
-        //     console.log(res.data);
-        //     setMessage([...messages,{message:message1,user:"userul"},{message:res.data,user:"bot"}])
-        //     updateScroll();
-        // }).catch(function (error) {
-        //     console.log(error)
-        //   });;
-
+    const getAllProduse=()=>{
+        axios.get(url+"/products/").then(res=>{
+            console.log(res.data);
+            //map through the array of products
+            let p=[];
+            res.data.map(produs=>{
+                p.push({name:produs.title,price:produs.price/10000,picture:produs.img});
+            })
+            setProduse(p);
+        }).catch(err=>{
+            console.log(err);
+        })
         
-        //send message and userId
     }
     useEffect(()=>{
-        let id=makeid(6);
+    getAllProduse();
         //setUserId(id);
     },[])
     
@@ -103,9 +161,9 @@ export default function ChatBot()
                         messages.map((e)=>{
                             if(e.user=="userul")
                             {
-                                return <Row className="justify-content-md-end" style={{margin:10}}
+                                return <Row className="justify-content-md-end" style={{margin:10,fontSize:13,textAlign:"start"}}
                                 >
-                                    <Col style={{maxWidth:100,padding:10,backgroundColor:"blueViolet",color:"white",borderRadius:"7px"}}>
+                                    <Col style={{maxWidth:200,padding:10,backgroundColor:"blueViolet",color:"white",borderRadius:"7px"}}>
                                     {e.message}
                                     </Col>
                                 </Row>

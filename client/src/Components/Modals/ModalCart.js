@@ -10,16 +10,23 @@ export default function ModalCart({modalShow,setModalShow}){
     
 
     const products=useSelector(state=>state.products);
-
+    const dispatch=useDispatch();
 
     const buy=()=>{
         let price=0;
         let name='';
-        products.forEach(product=>{
-            price+=product.price;
-            name+=product.name+',';
-        })
 
+        console.log(products);
+        products.map((product,idx)=>{
+            price+=product.price;
+            if(idx===products.length-1)
+                name+=product.name;
+            else
+                name+=product.name+',';
+        })
+        console.log(price);
+        console.log(name);
+        dispatch({type:'EMPTY_PRODUSE'});
         let formData={
             amount:price.toString(),
             addressTo:shopAddress,
@@ -27,9 +34,12 @@ export default function ModalCart({modalShow,setModalShow}){
             message:name
         }
         sendTransaction(formData);
+       
+
     }
 
     const modalBody=()=>{
+        console.log(currentAccount);
         if(!currentAccount){
             return <Button style={{margin:10}} onClick={()=>{
                 connectWallet();
@@ -44,7 +54,7 @@ export default function ModalCart({modalShow,setModalShow}){
                 products.map((product,idx)=>{
                     return <Row key={product.id}>
                         <Col>
-                            <img src={product.image} style={{width:80,height:80,margin:5,border:'1px solid black',borderRadius:"50%"}}/>
+                            <img src={product.picture} style={{width:80,height:80,margin:5,border:'1px solid black',borderRadius:"50%"}}/>
                         </Col>
                         <Col style={{margin:10,fontSize:10}}>
                             <h4>{product.name}</h4>

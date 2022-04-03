@@ -6,6 +6,7 @@ import {useSelector,useDispatch} from 'react-redux';
 import * as Icons from 'react-bootstrap-icons';
 import { FacebookProvider, LoginButton } from 'react-facebook';
 import {GoogleLogin}  from 'react-google-login';
+import {url} from '../../utils/constants';
 export default function ModalLogin({show,setShow})
 {
     let dispatch=useDispatch();
@@ -16,19 +17,39 @@ export default function ModalLogin({show,setShow})
         let name=data.profile.first_name+' '+data.profile.last_name;
         let id=data.profile.id;
         let picture=data.profile.picture.data.url;
-        dispatch({type:'SET_CURRENT_USER',payload:{email,name,id,picture}});
+        axios.post(url+"/auth/social-auth",{email,name,img:picture}).then(res=>{
+            console.log(res.data);
+            dispatch({type:'SET_CURRENT_USER',payload:{email,name,id,picture,type:'normal'}});
+    
+            console.log(user);
+        }).catch(err=>{
+            console.log(err);
+            alert(err);
+        })
+        
         setShow(false);
     }
+
     const responseGoogle = (response) => {
         console.log(response.profileObj);
         let email=response.profileObj.email;
         let name=response.profileObj.givenName+' '+response.profileObj.familyName;
         let id=response.profileObj.googleId;
         let picture=response.profileObj.imageUrl;
+        axios.post(url+"/auth/social-auth",{email,name,img:picture}).then(res=>{
+            console.log(res.data);
+            dispatch({type:'SET_CURRENT_USER',payload:{email,name,id,picture,type:'normal'}});
+           
+            console.log(user);
+            setShow(false);
+        }).catch(err=>{
+            console.log(err);
+            alert(err);
+        })
         
-        dispatch({type:'SET_CURRENT_USER',payload:{email,name,id,picture}});
-        setShow(false);
       }
+
+
     const handleErrorFacebook = (error) => {
         console.log(error);
     }
@@ -39,12 +60,13 @@ export default function ModalLogin({show,setShow})
         let email=form[0].value;
         let password=form[1].value;
         console.log(email,password);
-        // axios.post("http://localhost:3000/users/login/",{email,password}).then(res=>{
-        //     console.log(res.data);
-        //     dispatch({type:"LOGIN",payload:res.data});
-        //     }).catch(err=>{
-        //         console.log(err);
-        //     })
+        axios.post(url+"/auth/login/",{email,password}).then(res=>{
+            console.log(res.data);
+            //dispatch({type:"LOGIN",payload:res.data});
+            dispatch({type:'SET_CURRENT_USER',payload:{email:res.data.email,name:res.data.name,id:res.data.id,picture:res.data.img,type:res.data.role}});
+            }).catch(err=>{
+                console.log(err);
+        })
         setShow(false);
     }
     const sendRegister=(e)=>
@@ -54,12 +76,13 @@ export default function ModalLogin({show,setShow})
         let name=form[0].value;
         let email=form[1].value;
         let password=form[2].value;
-        // axios.post("http://localhost:3000/users/register/",{name,email,password}).then(res=>{
-        //     console.log(res.data);
-        //     dispatch({type:"LOGIN",payload:res.data});
-        //     }).catch(err=>{
-        //         console.log(err);
-        //     })
+        axios.post(url+"/auth/register/",{name,email,password}).then(res=>{
+            console.log(res.data);
+            dispatch({type:'SET_CURRENT_USER',payload:{email,name,id:'',picture:null,type:'normal'}});
+            }).catch(err=>{
+                console.log(err);
+                alert('Already registered');
+            })
         setShow(false);
     }
     return <>
@@ -139,7 +162,7 @@ export default function ModalLogin({show,setShow})
                 <LoginButton
                 scope="email"
                 onCompleted={handleResponseFacebook}
-                onError={handleErrorFacebook}
+                onError={handleResponseFacebook}
                 >
                 <Icons.Facebook style={{margin:5}} size={20}/>
                 </LoginButton>

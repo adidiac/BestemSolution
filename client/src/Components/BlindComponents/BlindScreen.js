@@ -2,7 +2,10 @@ import { Button, Container,Row } from "react-bootstrap"
 import { useSpeech,useRecognition } from "react-web-voice";
 import * as Icons from 'react-icons/si'
 import AudioSpectrum from 'react-audio-spectrum';
-import { useEffect, useState } from "react";
+import { useEffect, useState,useRef } from "react";
+import Webcam from "react-webcam";
+import {url} from '../../utils/constants';
+import axios from 'axios'
 import sample from "./sample.mp3";
 import { useSelector, useDispatch } from "react-redux";
 import { TransactionContext } from '../../Transanctions/TransactionProvider';
@@ -34,11 +37,63 @@ function editDistance(s1, s2) {
     }
     return costs[s2.length];
   }
+  function useInterval(callback, delay) {
+    const savedCallback = useRef();
+
+    // Remember the latest function.
+    useEffect(() => {
+        savedCallback.current = callback;
+    }, [callback]);
+
+    // Set up the interval.
+    useEffect(() => {
+        function tick() {
+            savedCallback.current();
+        }
+        if (delay !== null) {
+            let id = setInterval(tick, delay);
+            return () => clearInterval(id);
+        }
+    }, [delay]);
+}
 export default function BlindScreen()
 {
+    const dispatch=useDispatch();
+    const webcamRef = useRef(null);
+    const videoConstraints = {
+        width: 200,
+        height: 200,
+        facingMode: "user"
+      };
+      const delay=5000;
     const products=useSelector(state=>state.products);
+    const [produse,setProduse]=useState([]);
     const { currentAccount, connectWallet, handleChange, sendTransaction, formData,isLoading } = useContext(TransactionContext);
-
+    const [isRunning,setIsRunning]=useState(false);
+    useInterval(() => {
+        const imageSrc = webcamRef.current.getScreenshot();
+        console.log("stop");
+        //add to message as user to stop
+        axios.post(url+"/cameraRoute/objectDetection",{imgs:[imageSrc],size:1}).then(res=>{
+            console.log(res.data);
+            console.log("cebs")
+            speakHoverHandler(`You have ordered ${res.data}`);
+            produse.map(product=>{
+            
+                if(product.name===res.data)
+                {
+                    console.log('not found1');
+                    console.log(product.name);
+                    dispatch({type:'ADD_PRODUS',payload:product});
+                    
+                }
+            })
+        }).catch(err=>{
+            console.log(err);
+        })
+        setIsRunning(false);
+       
+    }, isRunning ? delay : null);
     const buy=()=>{
      
         let price=0;
@@ -55,13 +110,13 @@ export default function BlindScreen()
             message:name
         }
         sendTransaction(formData);
-        
+        dispatch({type:'EMPTY_PRODUSE'});
 
     }
 
 
-    const dispatch=useDispatch();
-    const [produse,setProduse]=useState([{name:"Zahar",price:"0.001",picture:''}]);
+  
+    
     let comands=["CAKE",
         "CANDY",
         "CEREAL",
@@ -86,7 +141,8 @@ export default function BlindScreen()
         "TOMATO SAUCE",
         "VINEGAR",
         "WATER",
-        "COMPLET",]
+        "COMPLET",
+        "OBJECT"]
     const { messages, speak } = useSpeech();
     const [speeaking,setSpeeaking] = useState(true);
     const speakHoverHandler = async (text) => {
@@ -108,46 +164,92 @@ export default function BlindScreen()
         document.getElementById("audio-element").playbackRate =10;
         document.getElementById("audio-element").play();
       const transcript = await listen();
-        console.log(transcript);
+        
         let word=transcript.toUpperCase();
-        let comand1='';
+        let comand1='REPEAT';
+        let find=false;
+        console.log(word);
         comands.map(comand=>{
             if(word.includes(comand))
             {
-                if(comand1!=="COMPLET")
-                speakHoverHandler(`You have ordered ${comand}`);
+                if(comand1!=="COMPLET"&&comand1!=="OBJECT")
+                {
+                    speakHoverHandler(`You have ordered ${comand}`);
+                }
                 comand1=comand;
             }
         })
+        console.log("logic")
+        console.log(comand1);
+        if(comand1==="REPEAT")
+        {
+            speakHoverHandler("Repeat please");
+        }else
         if(comand1==="COMPLET")
         {
             if(currentAccount){
             speakHoverHandler("Thank you for your order");
             buy();
             }else{
-                speakHoverHandler("Please connect your wallet first than say COMPLET again");
+                speakHoverHandler("We will connect your wallet first than say COMPLET again");
+                connectWallet();
             }
 
-        }else{
+        }else if(comand1==="OBJECT")
+        {
+            setIsRunning(true);
+        }
+        else{
+            console.log('not found');
+            console.log(comand1);
         let productsName='';
         let productsPrice=0;
         produse.map(product=>{
-            console.log(product.name);
-            if(editDistance (product.name,comand1)>0.5)
+            
+            if(product.name===comand1)
             {
-                productsName+=product.name+",";
-            productsPrice+=product.price;
+                console.log('not found1');
+                console.log(product.name);
                 dispatch({type:'ADD_PRODUS',payload:product});
             }
         })
-        speakHoverHandler(`You have ordered ${productsName} for a total of ${productsPrice.toString()} till now say complete to finish`);
+        speakHoverHandler("Thank you for your order");
+       
         }
         document.getElementById("audio-element").pause();
     };
+    const getAllProduse=()=>{
+        axios.get(url+"/products/").then(res=>{
+            console.log(res.data);
+            //map through the array of products
+            let p=[];
+            res.data.map(produs=>{
+                p.push({name:produs.title,price:produs.price/10000,picture:produs.img});
+            })
+            setProduse(p);
+        }).catch(err=>{
+            console.log(err);
+        })
+        
+    }
+   
+    
+  
+    
     useEffect(()=>{
-        speakHoverHandler("Welcome to the shopping page! Press the button in the middle of the page and say the name of the product you want to buy and then say Complete to add it to cart. Optionally, you can say Detect to scan the product in front of you!");
+        getAllProduse();
+        speakHoverHandler("Welcome to the shopping page! Press the button in the middle of the page and say the name of the product you want to buy and then say Complete to add it to cart. Optionally, you can say Object to scan the product in front of you!");
     },[])
     return <>
+    <Webcam style={{border:"2px solid black",borderRadius:"5px",position:'absolute',left:20,bottom:20}}
+                    audio={false}
+                    height={200}
+                    screenshotFormat="image/jpeg"
+                    width={200}
+                    ref={webcamRef}
+                    videoConstraints={videoConstraints}
+                >
+                </Webcam>
     <Container style={{textAlign:"center",position: 'absolute', left: '50%', top: '50%',
         transform: 'translate(-50%, -50%)'}}>
             <Row>

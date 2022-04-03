@@ -10,7 +10,9 @@ function App() {
   const page=useSelector(state=>state.page);
   const user=useSelector(state=>state.user);
   const render=()=>{
-    if(!user.type){
+    console.log(page);
+    console.log(user);
+    if(user.type==='normal'||!user.type){
       return page;
     }
     else

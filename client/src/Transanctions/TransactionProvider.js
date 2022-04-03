@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
-
+import { shopAddress } from "../utils/constants";
 import { contractABI, contractAddress } from "../utils/constants";
 
 export const TransactionContext = React.createContext();
@@ -32,15 +32,23 @@ export const TransactionsProvider = ({ children }) => {
         const transactionsContract = createEthereumContract();
 
         const availableTransactions = await transactionsContract.getAllTransactions();
-
-        const structuredTransactions = availableTransactions.map((transaction) => ({
+        console.log("availableTransactions");
+        console.log(availableTransactions);
+        const structuredTransactions = [];
+        availableTransactions.map((transaction) => {
+          if(transaction.receiver===shopAddress){
+            structuredTransactions.push({
           addressTo: transaction.receiver,
           addressFrom: transaction.sender,
           timestamp: new Date(transaction.timestamp.toNumber() * 1000).toLocaleString(),
           message: transaction.message,
           keyword: transaction.keyword,
           amount: parseInt(transaction.amount._hex) / (10 ** 18)
-        }));
+        })
+      
+      }
+        });
+        console.log("structuredTransactions");
 
         console.log(structuredTransactions);
 
@@ -103,6 +111,7 @@ export const TransactionsProvider = ({ children }) => {
   };
   const setAdminAccount=(account)=>{
     setCurrentAccount(account);
+    getAllTransactions();
   }
   const sendTransaction = async (formData1) => {
     try {

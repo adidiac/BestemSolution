@@ -4,13 +4,21 @@ import axios from 'axios'
 import Webcam from "react-webcam";
 import { useState,useEffect,useRef } from 'react';
 import { useContext } from "react";
+import {url} from '../../utils/constants';
 export default function ModalFeedBack({modalShow,setModalShow}){
 
     const webcamRef = useRef(null);
     const [feedback,setFeedback]=useState(false);
+    const [feedbackText,setFeedbackText]=useState('');
     const sendFeedback=()=>{
         const imageSrc = webcamRef.current.getScreenshot();
         //send image to server
+        axios.post(url+"/feedback",{imgs:[imageSrc],size:1}).then(res=>{
+            console.log(res.data);
+            setFeedbackText(res.data);
+        }).catch(err=>{
+            console.log(err);
+        })
         setFeedback(true);
     }
     const videoConstraints = {
@@ -43,6 +51,8 @@ export default function ModalFeedBack({modalShow,setModalShow}){
             return <Container>
      
             <h3>Thanks for your feedback</h3>
+            <br></br>
+            <h5>{feedbackText}</h5>
             </Container>
         }
     }

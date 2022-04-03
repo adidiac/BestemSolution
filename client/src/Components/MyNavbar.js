@@ -8,7 +8,7 @@ import { useContext } from "react";
 import ModalFeedBack from './Modals/ModalFeedBack';
 import logo from './logo_garuda.png';
 import { TransactionContext } from '../Transanctions/TransactionProvider';
-
+import HomeScreen from './HomeScreen';
 export default function MyNavbar({}) {
   
   const {logOut} = useContext(TransactionContext);
@@ -43,10 +43,17 @@ export default function MyNavbar({}) {
   return <>
   <Navbar bg="primary" variant="dark" expand={false} style={{backgroundColor:"#B7CADB"}}>
   <Container fluid >
-  <Navbar.Brand style={{margin:10,padding:5,fontSize:40,fontWeight:'bold'}}
-  
-  ><img style={{height:70,width:70}} src={logo}></img></Navbar.Brand>
+  <Nav.Link style={{margin:10,padding:5,fontSize:40,fontWeight:'bold'}}
+  onClick={()=>{
+    console.log('home');
+    dispatch({type:"SET_PAGE",payload:<HomeScreen />});
+  }}
+  ><img style={{height:70,width:70}} src={logo}></img></Nav.Link>
     <Navbar.Brand style={{margin:10,padding:5,fontSize:40,fontWeight:'bold'}}
+    onClick={()=>{
+      console.log('home');
+      dispatch({type:"SET_PAGE",payload:<HomeScreen />});
+    }}
     style={{textShadow:"-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000",fontSize:40,fontWeight:'bold'}}
     >Garuda</Navbar.Brand>
     <Navbar.Toggle aria-controls="offcanvasNavbar" />
@@ -69,9 +76,7 @@ export default function MyNavbar({}) {
             }} style={{fontSize:30,color:'white'}} > 
             {renderProfile()}
             </Nav.Link>
-            {
-              !(user.isAuthenticated && user.user.role!=='admin')?
-              <>
+       
             <hr style={{height:'2'}}></hr>
             <Nav.Link  onClick={(e)=>{
                 setShowCart(true)
@@ -90,8 +95,7 @@ export default function MyNavbar({}) {
                 setShowFeedBack(true)
                 }} >
                   <h3  style={{color:'white',textShadow:"-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000",fontSize:40,fontWeight:'bold'}}>Feedback</h3> 
-              </Nav.Link></>:<></>
-              }   
+              </Nav.Link>
               {
                 user.isAuthenticated?
                 <>

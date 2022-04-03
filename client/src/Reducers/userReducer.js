@@ -4,7 +4,8 @@ export const userReducer = (state = {isAuthenticated:false,user:{},type:null}, a
         return {
             ...state,
             isAuthenticated: true,
-            user: action.payload
+            user: action.payload,
+            type:action.payload.type
         };
         case 'LOGOUT_CURRENT_USER':
         return { 

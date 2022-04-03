@@ -53,6 +53,7 @@ export default function HomeScreen()
     },
    
     ]
+    
     return <>
 <Container style={{textAlign:"center",position: 'absolute', left: '50%', top: '50%',
     transform: 'translate(-50%, -50%)'}}>

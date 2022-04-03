@@ -4,6 +4,6 @@ import abi from './Transactions.json';
 export const contractABI=abi.abi;
 export const contractAddress='0x05114C1bFff3a9Ee5d4F979A5FfEA54FAd5724fD';
 
-export const  shopAddress="0x1F4825d1E6fb2146D631EdCD890BBD3B16CD0E23"
+export const  shopAddress="0xF3d235408900e0024882C90f3614D10D93b16fCa"
 
-export const url="http://localhost:3000/";
+export const url="http://20.113.164.156:2000";

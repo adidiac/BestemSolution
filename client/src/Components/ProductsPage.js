@@ -3,13 +3,19 @@ import {useSelector} from 'react-redux';
 import { useEffect, useState } from 'react';
 import Produs from "./Product";
 import axios from 'axios';
+import {url} from '../utils/constants';
 export default function ProductsPage() {
 
    const [produse,setProduse]=useState([{name:"Zahar",price:"0.001",picture:''}]);
    const getAllProduse=()=>{
-        axios.get("http://localhost:3000/products/").then(res=>{
+        axios.get(url+"/products/").then(res=>{
             console.log(res.data);
-            setProduse(res.data);
+            //map through the array of products
+            let p=[];
+            res.data.map(produs=>{
+                p.push({name:produs.title,price:produs.price/10000,picture:produs.img});
+            })
+            setProduse(p);
         }).catch(err=>{
             console.log(err);
         })
@@ -28,7 +34,7 @@ export default function ProductsPage() {
             <hr style={{color:"white",height:3,margin:20,width:"100%"}}></hr>
             <Row style={{border:""}}>
                 {produse.map((produs,index)=>{
-                    return <Produs price={produs.price} name={produs.name} picture={produs.image} details={produs.description}></Produs>
+                    return <Produs price={produs.price} name={produs.name} picture={produs.picture} details={produs.description}></Produs>
                 })
             }
             </Row>

@@ -2,16 +2,24 @@ import { Container,Row,Col,Button ,Table} from "react-bootstrap";
 import axios from "axios";
 import { TransactionContext } from '../Transanctions/TransactionProvider';
 import { useState,useEffect,useContext } from 'react';
+import {url} from '../utils/constants';
 export default function AdminPage( ){
 
     const {   transactionCount,transactions,currentAccount, connectWallet, handleChange, sendTransaction, formData,isLoading,setAdminAccount } = useContext(TransactionContext);    
     const [feedBack,setFeedBack]=useState({totalUsers:2,sentimentOverall:'Happines'});
     const getFeedback=()=>{
-
+        axios.get(url+'/admin/feedback').then(res=>{
+            console.log("feedback",res.data);
+            console.log(res.data);
+           setFeedBack({totalUsers:res.data.users,sentimentOverall:res.data.overallFeedback});
+        }).catch(err=>{
+            console.log(err);
+        })
     }
     useEffect(()=>{
-    
-        setAdminAccount("0x1F4825d1E6fb2146D631EdCD890BBD3B16CD0E23");
+        getFeedback();
+        setAdminAccount("0xF3d235408900e0024882C90f3614D10D93b16fCa");
+        console.log(currentAccount);
         console.log(transactionCount);
         console.log(transactions);
     },[])
